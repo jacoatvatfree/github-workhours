@@ -1,0 +1,33 @@
+# Project Intelligence: github-workhours
+
+## Project Patterns
+- JavaScript-based npm package
+- Focused on GitHub API integration
+- Emphasis on performance and rate limit optimization
+- Both CLI and programmatic interfaces
+
+## Code Style Preferences
+- JavaScript (not TypeScript)
+- ES6+ syntax
+- Functional clean architecture
+- Single-purpose functions in separate files
+- Dependency injection through factory functions (e.g., `makeUser`)
+- Lightweight dependencies
+- Clear module separation
+
+## GitHub API Usage Patterns
+- Authenticate with Personal Access Tokens
+- Implement rate limiting and backoff strategies
+- Use conditional requests with ETags
+- Cache results to minimize API calls
+
+## Output Preferences
+- JSON format for data output
+- Clean, minimal CLI interface
+- Programmatic API with promise support
+
+## Development Workflow
+- Test-driven development
+- ESLint for code quality
+- Semantic versioning
+- npm for package management
