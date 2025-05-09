@@ -19,6 +19,7 @@
 - Comprehensive README and usage examples created
 - Unit tests and test suite configured
 - Improved after-hours analysis accuracy with 2D array for day-hour tracking
+- Enhanced CLI with shorthand time period notations (y, mo, w, d) for date ranges
 
 ## In Progress
 - Implement example scripts for common workflows

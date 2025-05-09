@@ -9,8 +9,8 @@ program
   .name('github-workhours')
   .description('Analyze GitHub commit patterns to determine after-hours activity')
   .option('-o, --org <org>', 'GitHub organization name (or set GITHUB_ORG env var)')
-  .option('-s, --since <since>', 'Start date (ISO format, e.g., 2023-01-01T00:00:00Z)')
-  .option('-u, --until <until>', 'End date (ISO format, e.g., 2024-01-01T00:00:00Z)')
+  .option('-s, --since <since>', 'Start date (ISO format or duration like "2 months", "2mo", "2y", "2w", "2d")')
+  .option('-u, --until <until>', 'End date (ISO format or duration like "1 month", "1mo", "1y", "1w", "1d")')
   .option('-t, --token <token>', 'GitHub Personal Access Token (or set GITHUB_TOKEN env var)')
   .version('1.0.0')
   .parse(process.argv);
@@ -19,22 +19,32 @@ const options = program.opts();
 const org = options.org || process.env.GITHUB_ORG;
 const token = options.token || process.env.GITHUB_TOKEN;
 
-// parse since flag (ISO date or natural language duration like "2 months")
+// parse since flag (ISO date or natural language duration like "2 months" or "2y")
 let since;
 if (options.since) {
-  const nlMatch = options.since.match(/^(\d+)\s*(day|days|month|months|year|years)$/i);
+  // Support both full words and shorthand notations (y, mo, w, d), with or without spaces
+  const nlMatch = options.since.match(/^(\d+)\s*(d|day|days|w|week|weeks|mo|month|months|y|year|years)$/i);
   if (nlMatch) {
     const num = parseInt(nlMatch[1], 10);
     const unit = nlMatch[2].toLowerCase();
     switch (unit) {
+      case 'd':
       case 'day':
       case 'days':
         since = subDays(new Date(), num).toISOString();
         break;
+      case 'w':
+      case 'week':
+      case 'weeks':
+        // Convert weeks to days (1 week = 7 days)
+        since = subDays(new Date(), num * 7).toISOString();
+        break;
+      case 'mo':
       case 'month':
       case 'months':
         since = subMonths(new Date(), num).toISOString();
         break;
+      case 'y':
       case 'year':
       case 'years':
         since = subYears(new Date(), num).toISOString();
@@ -45,7 +55,41 @@ if (options.since) {
   }
 }
 
-const until = options.until;
+// parse until flag with the same natural language support as since
+let until;
+if (options.until) {
+  // Support both full words and shorthand notations (y, mo, w, d), with or without spaces
+  const nlMatch = options.until.match(/^(\d+)\s*(d|day|days|w|week|weeks|mo|month|months|y|year|years)$/i);
+  if (nlMatch) {
+    const num = parseInt(nlMatch[1], 10);
+    const unit = nlMatch[2].toLowerCase();
+    switch (unit) {
+      case 'd':
+      case 'day':
+      case 'days':
+        until = subDays(new Date(), num).toISOString();
+        break;
+      case 'w':
+      case 'week':
+      case 'weeks':
+        // Convert weeks to days (1 week = 7 days)
+        until = subDays(new Date(), num * 7).toISOString();
+        break;
+      case 'mo':
+      case 'month':
+      case 'months':
+        until = subMonths(new Date(), num).toISOString();
+        break;
+      case 'y':
+      case 'year':
+      case 'years':
+        until = subYears(new Date(), num).toISOString();
+        break;
+    }
+  } else {
+    until = options.until;
+  }
+}
 
 if (!org) {
   console.error('Error: Organization name is required. Provide via --org or GITHUB_ORG env var.');

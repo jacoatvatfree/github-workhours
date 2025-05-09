@@ -12,6 +12,7 @@ Improving the accuracy of after-hours commit analysis
 - Decided to use factory functions for dependency injection (e.g., `makeUser`)
 - Implemented a 2D array [7][24] for day-hour tracking to improve code readability and analysis accuracy
 - Defined work hours as 9am to 5pm in the local timezone of the server
+- Enhanced CLI with shorthand time period notations (y, mo, w, d) for natural language date parsing
 
 ## Current Challenges
 - Optimizing GitHub API usage to handle large organizations
