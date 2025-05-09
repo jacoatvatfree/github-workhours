@@ -38,8 +38,46 @@ flowchart TD
 5. Results are aggregated by contributor
 6. Final analysis is returned in JSON format
 
+## Data Structures
+1. **Contributor Data**:
+   ```javascript
+   {
+     byHourAndDay: Array[7][24],  // 2D array for day-hour tracking [day][hour]
+                                  // Hours are in local timezone of the server
+     byHour: Array(24),           // Commits by hour of day (local timezone)
+     byDay: Array(7),             // Commits by day of week
+     total: Number                // Total commit count
+   }
+   ```
+
+2. **Analysis Result**:
+   ```javascript
+   {
+     org: String,                 // Organization name
+     since: String,               // Start date (ISO format)
+     until: String,               // End date (ISO format)
+     analysis: {                  // Analysis by contributor
+       [username]: {
+         byHourAndDay: Array[7][24], // 2D array for day-hour tracking
+         byHour: Array,           // Commits by hour
+         byDay: Array,            // Commits by day
+         totalCommits: Number,    // Total commits
+         afterHoursCommits: Number // After-hours commit count
+       }
+     }
+   }
+   ```
+
 ## Optimization Strategies
 - Incremental data fetching to avoid redundant API calls
 - Local caching of previously fetched data
 - Parallel processing where appropriate
 - Backoff strategies for rate limit handling
+
+## Timezone Handling
+- Commit timestamps from GitHub API are in UTC format (e.g., '2023-01-01T10:00:00Z')
+- When creating JavaScript Date objects, timestamps are automatically converted to the server's local timezone
+- Work hours are defined as 9am to 5pm in the local timezone of the server
+- After-hours commits include:
+  - All commits on weekends (Saturday and Sunday)
+  - Weekday commits before 9am or after 5pm local time

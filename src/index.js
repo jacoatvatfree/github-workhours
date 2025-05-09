@@ -1,7 +1,8 @@
 'use strict';
 
-const { analyzeWorkHours } = require('./analyzer');
+const { analyzeWorkHours, closeCache } = require('./analyzer');
 
 module.exports = {
-  analyzeWorkHours
+  analyzeWorkHours,
+  closeCache
 };

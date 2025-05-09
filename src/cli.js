@@ -3,7 +3,7 @@
 
 const { program } = require('commander');
 const { subDays, subMonths, subYears } = require('date-fns');
-const { analyzeWorkHours } = require('./analyzer');
+const { analyzeWorkHours, closeCache } = require('./analyzer');
 
 program
   .name('github-workhours')
@@ -67,5 +67,8 @@ if (!token) {
     spinner.fail('Analysis failed');
     console.error(error.message);
     process.exit(1);
+  } finally {
+    // Close the cache to prevent hanging processes
+    await closeCache();
   }
 })();

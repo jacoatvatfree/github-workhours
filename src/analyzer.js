@@ -5,6 +5,7 @@ const { createCache } = require('./cache');
 
 // Cache instance will be initialized in analyzeWorkHours
 let cache;
+let isCacheClosed = false;
 
 /**
  * Analyze GitHub work hours for an organization.
@@ -86,25 +87,53 @@ async function analyzeWorkHours({ org, since, until, token }) {
       const day = date.getDay(); // 0 (Sun) - 6 (Sat)
 
       if (!contributors[author]) {
+        // Create a 2D array with 7 rows (days) and 24 columns (hours)
+        const byHourAndDay = Array(7).fill().map(() => Array(24).fill(0));
+        
         contributors[author] = {
+          byHourAndDay,
           byHour: Array(24).fill(0),
           byDay: Array(7).fill(0),
           total: 0
         };
       }
-
+      
+      // Access the 2D array directly with [day][hour]
+      contributors[author].byHourAndDay[day][hour] += 1;
       contributors[author].byHour[hour] += 1;
       contributors[author].byDay[day] += 1;
       contributors[author].total += 1;
     }
   }
 
-  // compute after-hours: before 9 or after 17 local
+  // compute after-hours: 
+  // - For weekdays (Mon-Fri): before 9am or after 5pm
+  // - For weekends (Sat-Sun): all hours count as after-hours
   const analysis = {};
   for (const [author, data] of Object.entries(contributors)) {
-    const afterHoursCount = data.byHour
-      .reduce((sum, count, h) => sum + (h < 9 || h >= 17 ? count : 0), 0);
+    // Calculate after-hours commits by considering both time and day of week
+    let afterHoursCount = 0;
+    
+    // Count commits by hour and day combination directly using 2D array
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        // 0 = Sunday, 6 = Saturday
+        const isWeekend = day === 0 || day === 6; 
+        
+        // Before 9am or after 5pm in the local timezone
+        // Note: Date.getHours() already returns hours in local timezone
+        const isAfterHours = hour < 9 || hour >= 17; 
+        
+        // For weekends, all hours count as after-hours
+        // For weekdays, only before 9am or after 5pm count as after-hours
+        if (isWeekend || isAfterHours) {
+          // Now we have exact hour+day combined data, no need to estimate
+          afterHoursCount += data.byHourAndDay[day][hour];
+        }
+      }
+    }
     analysis[author] = {
+      byHourAndDay: data.byHourAndDay,
       byHour: data.byHour,
       byDay: data.byDay,
       totalCommits: data.total,
@@ -115,4 +144,22 @@ async function analyzeWorkHours({ org, since, until, token }) {
   return { org, since, until, analysis };
 }
 
-module.exports = { analyzeWorkHours };
+/**
+ * Close the cache connection to prevent hanging processes.
+ * This should be called when the application is shutting down.
+ */
+async function closeCache() {
+  if (cache && !isCacheClosed) {
+    try {
+      await cache.close();
+    } catch (error) {
+      console.error('Error closing cache:', error);
+    } finally {
+      // Force cleanup even if there was an error
+      cache = null;
+      isCacheClosed = true;
+    }
+  }
+}
+
+module.exports = { analyzeWorkHours, closeCache };

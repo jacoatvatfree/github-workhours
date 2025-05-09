@@ -1,6 +1,6 @@
 'use strict';
 
-const { analyzeWorkHours } = require('../src/analyzer');
+const { analyzeWorkHours, closeCache } = require('../src/analyzer');
 
 /**
  * Example script to run work-hours analysis.
@@ -30,5 +30,8 @@ const { analyzeWorkHours } = require('../src/analyzer');
   } catch (error) {
     console.error(error.message);
     process.exit(1);
+  } finally {
+    // Close the cache to prevent hanging processes
+    await closeCache();
   }
 })();

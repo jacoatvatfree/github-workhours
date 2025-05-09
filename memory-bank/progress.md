@@ -18,6 +18,7 @@
 - Programmatic API implemented
 - Comprehensive README and usage examples created
 - Unit tests and test suite configured
+- Improved after-hours analysis accuracy with 2D array for day-hour tracking
 
 ## In Progress
 - Implement example scripts for common workflows
@@ -26,7 +27,7 @@
 - None at this stage
 
 ## Known Issues
-- None at this stage
+- Timezone handling may affect after-hours calculations depending on server location
 
 ## Open Questions
 - What specific metrics best indicate after-hours work?
