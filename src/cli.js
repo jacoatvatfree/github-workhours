@@ -12,12 +12,15 @@ program
   .option('-s, --since <since>', 'Start date (ISO format or duration like "2 months", "2mo", "2y", "2w", "2d")')
   .option('-u, --until <until>', 'End date (ISO format or duration like "1 month", "1mo", "1y", "1w", "1d")')
   .option('-t, --token <token>', 'GitHub Personal Access Token (or set GITHUB_TOKEN env var)')
+  .option('-v, --verbose [logFile]', 'Enable verbose mode with optional log file path (defaults to "verbose-log.txt")')
   .version('1.0.0')
   .parse(process.argv);
 
 const options = program.opts();
 const org = options.org || process.env.GITHUB_ORG;
 const token = options.token || process.env.GITHUB_TOKEN;
+const verbose = options.verbose;
+const logFile = typeof verbose === 'string' ? verbose : (verbose ? 'verbose-log.txt' : null);
 
 // parse since flag (ISO date or natural language duration like "2 months" or "2y")
 let since;
@@ -104,7 +107,7 @@ if (!token) {
   const { default: ora } = await import('ora');
   const spinner = ora(`Analyzing commits for organization: ${org}`).start();
   try {
-    const result = await analyzeWorkHours({ org, since, until, token });
+    const result = await analyzeWorkHours({ org, since, until, token, verbose, logFile });
     spinner.succeed('Analysis complete');
     console.log(JSON.stringify(result, null, 2));
   } catch (error) {
